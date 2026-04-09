@@ -1,11 +1,11 @@
-function Home() {
+function Chalan() {
   return (
     <section className="max-w-6xl mx-auto px-4 py-10">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h1 className="text-3xl font-bold text-gray-900">Home</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Chalan</h1>
       </div>
     </section>
   );
 }
 
-export default Home;
+export default Chalan;
