@@ -4,10 +4,12 @@ import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 import ChalanCard from "../components/ChalanCard";
 import Loader from "../components/Loader";
+import { institute } from "../data/institute";
 import { students } from "../data/students";
 
 function Chalan() {
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id ?? "");
+  const [layoutMode, setLayoutMode] = useState("portrait");
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingLabel, setProcessingLabel] = useState("Processing...");
   const [generatedChalan, setGeneratedChalan] = useState(null);
@@ -20,9 +22,16 @@ function Chalan() {
 
   const createChalanMeta = () => {
     const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const issueDay = now.getDate();
+    /** Due on the 15th of the issue month, but never before the issue date. */
+    const due = new Date(y, m, issueDay <= 15 ? 15 : issueDay);
+    const fmt = (d) => d.toLocaleDateString();
     return {
       chalanId: `CH-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`,
-      generatedAt: now.toLocaleDateString(),
+      generatedAt: fmt(now),
+      dueDate: fmt(due),
     };
   };
 
@@ -66,14 +75,24 @@ function Chalan() {
     const toastId = toast.loading("Preparing PDF...");
 
     try {
+      if (document.fonts?.ready) {
+        await document.fonts.ready.catch(() => {});
+      }
+      window.scrollTo(0, 0);
+
+      /* Default canvas renderer only: foreignObjectRendering often yields a blank canvas
+         (SVG/CORS/security), especially with images and dev-server origins. */
       const canvas = await html2canvas(printRef.current, {
         scale: 3,
         useCORS: true,
+        allowTaint: false,
         backgroundColor: "#ffffff",
+        scrollX: 0,
+        scrollY: 0,
       });
 
       const imgData = canvas.toDataURL("image/png");
-      const orientation = canvas.width > canvas.height ? "l" : "p";
+      const orientation = "l";
       const pdf = new jsPDF({
         orientation,
         unit: "mm",
@@ -81,7 +100,26 @@ function Chalan() {
       });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+      const imgW = canvas.width;
+      const imgH = canvas.height;
+      const pageRatio = pageWidth / pageHeight;
+      const imgRatio = imgW / imgH;
+      let drawW;
+      let drawH;
+      let offsetX;
+      let offsetY;
+      if (imgRatio > pageRatio) {
+        drawW = pageWidth;
+        drawH = pageWidth / imgRatio;
+        offsetX = 0;
+        offsetY = (pageHeight - drawH) / 2;
+      } else {
+        drawH = pageHeight;
+        drawW = pageHeight * imgRatio;
+        offsetX = (pageWidth - drawW) / 2;
+        offsetY = 0;
+      }
+      pdf.addImage(imgData, "PNG", offsetX, offsetY, drawW, drawH);
       pdf.save(`${generatedChalan.chalanId}.pdf`);
       toast.success("PDF downloaded successfully", { id: toastId });
     } catch {
@@ -96,6 +134,19 @@ function Chalan() {
       toast.error("Generate chalan before printing");
       return;
     }
+
+    const dynamicPrintStyle = document.createElement("style");
+    dynamicPrintStyle.id = "dynamic-print-orientation";
+    const printOrientation = "landscape";
+    dynamicPrintStyle.innerHTML = `@page { size: A4 ${printOrientation}; margin: 0; }`;
+    document.head.appendChild(dynamicPrintStyle);
+
+    const cleanupPrintStyle = () => {
+      const existingStyle = document.getElementById("dynamic-print-orientation");
+      if (existingStyle) existingStyle.remove();
+      window.removeEventListener("afterprint", cleanupPrintStyle);
+    };
+    window.addEventListener("afterprint", cleanupPrintStyle);
 
     toast.success("Opening print dialog...");
     window.print();
@@ -116,7 +167,7 @@ function Chalan() {
           chalan.
         </p>
 
-        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto] md:items-end">
+        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto] md:items-end">
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-gray-700">
               Select Student
@@ -134,6 +185,20 @@ function Chalan() {
                   {student.name} ({student.rollNumber})
                 </option>
               ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
+              Layout
+            </span>
+            <select
+              value={layoutMode}
+              onChange={(event) => setLayoutMode(event.target.value)}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
             </select>
           </label>
 
@@ -189,17 +254,48 @@ function Chalan() {
       {generatedChalan && (
         <div
           ref={printRef}
-          className="print-area a4-sheet max-w-[210mm] mx-auto bg-white rounded-lg shadow-sm border border-gray-300 p-4 md:p-5 space-y-3"
+          className={`print-area a4-sheet ${layoutMode === "portrait" ? "sheet-landscape" : "sheet-landscape-reference"} mx-auto bg-white rounded-lg shadow-sm border border-gray-300 p-4 md:p-5`}
         >
-          {["Bank Copy", "Student Copy", "Accounts Copy"].map((copyLabel) => (
-            <ChalanCard
-              key={copyLabel}
-              student={generatedChalan.student}
-              chalanId={generatedChalan.chalanId}
-              generatedAt={generatedChalan.generatedAt}
-              copyLabel={copyLabel}
-            />
-          ))}
+          {layoutMode === "portrait" ? (
+            ["Bank Copy", "Student Copy", "Accounts Copy"].map((copyLabel) => (
+              <ChalanCard
+                key={copyLabel}
+                student={generatedChalan.student}
+                chalanId={generatedChalan.chalanId}
+                generatedAt={generatedChalan.generatedAt}
+                dueDate={generatedChalan.dueDate}
+                copyLabel={copyLabel}
+              />
+            ))
+          ) : (
+            ["Bank Copy", "Student Copy", "Accounts Copy"].map((copyLabel) => (
+              <ChalanCard
+                key={copyLabel}
+                student={generatedChalan.student}
+                chalanId={generatedChalan.chalanId}
+                generatedAt={generatedChalan.generatedAt}
+                dueDate={generatedChalan.dueDate}
+                copyLabel={copyLabel}
+                compact
+              />
+            ))
+          )}
+          {layoutMode === "portrait" && (
+            <div className="layout-note flex flex-col items-center justify-center gap-1 border border-gray-300 rounded-md p-3 text-center text-sm text-gray-700 font-medium">
+              <p>
+                Note: If you face difficulty while paying the fee, use this same
+                chalan online or through bank deposit.
+              </p>
+              <p>
+                Keep your paid slip/copy for record and verification. For support,
+                contact Accounts Office.
+              </p>
+              <p>
+                PTCL: {institute.supportPhonePtcl} &nbsp;|&nbsp; Jazz:{" "}
+                {institute.supportPhoneJazz}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </section>
