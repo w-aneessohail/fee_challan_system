@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Chalan: html2canvas centers text reliably with table/table-cell (flex often renders bottom-heavy in PDF) */
-.chalan-stripe {
+/* Portrait chalan only (.chalan-card) — landscape uses src/styles/chalan-landscape.css */
+.chalan-card .chalan-stripe {
   display: table;
   width: 100%;
   table-layout: fixed;
@@ -12,7 +12,7 @@
   overflow: hidden;
 }
 
-.chalan-stripe-text {
+.chalan-card .chalan-stripe-text {
   display: table-cell;
   margin: 0;
   padding: 0 0.5rem;
@@ -22,6 +22,38 @@
   font-weight: 700;
   line-height: 1;
   color: #ffffff;
+}
+
+.chalan-row-table {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-spacing: 0;
+  border-collapse: separate;
+}
+
+.chalan-card .chalan-cell {
+  display: table-cell;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.chalan-cell--qr {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.chalan-meta-line {
+  display: block;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.chalan-student-fields > p,
+.chalan-foot-p {
+  margin: 0;
+  line-height: 1.4;
 }
 
 .chalan-card table.chalan-fee-table {
@@ -36,12 +68,20 @@
   line-height: normal;
 }
 
-/* Fixed line-height box: html2canvas aligns this more predictably than valign on raw td text */
-.chalan-fee-th-line,
-.chalan-fee-td-line {
+.chalan-fee-line-wrap {
+  display: table;
+  width: 100%;
   min-height: 2rem;
-  line-height: 2rem;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+
+.chalan-card .chalan-fee-th-line,
+.chalan-card .chalan-fee-td-line {
+  display: table-cell;
+  vertical-align: middle;
   padding: 0 0.5rem;
+  line-height: 1.25;
   font-size: 11px;
   box-sizing: border-box;
   overflow: hidden;
@@ -54,6 +94,17 @@
 
 .chalan-fee-th-line {
   font-weight: 600;
+}
+
+/* Stacked landscape copies (3 rows, portrait page) — shell only; card styles in chalan-landscape.css */
+.a4-sheet.sheet-ls-stacked {
+  width: min(100%, 210mm);
+  min-height: 297mm;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: stretch;
 }
 
 .a4-sheet.sheet-portrait {
@@ -98,31 +149,8 @@
   padding-bottom: 0.18rem;
 }
 
-.a4-sheet.sheet-landscape-reference {
-  width: min(100%, 297mm);
-  min-height: 210mm;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.35rem;
-  align-items: stretch;
-}
-
-.sheet-landscape-reference .chalan-card {
-  padding: 0.5rem;
-}
-
-.sheet-landscape-reference .chalan-card img {
-  height: 2.8rem;
-  width: 2.8rem;
-}
-
-.sheet-landscape-reference .chalan-card table th,
-.sheet-landscape-reference .chalan-card table td {
-  padding-top: 0.16rem;
-  padding-bottom: 0.16rem;
-}
-
-.sheet-landscape .layout-note {
+.sheet-landscape .layout-note,
+.sheet-ls-stacked .layout-note {
   grid-column: 1 / -1;
 }
 
@@ -192,14 +220,14 @@
     gap: 1.5mm !important;
   }
 
-  .print-area.sheet-landscape-reference {
-    width: 297mm !important;
-    height: 210mm !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    grid-template-rows: 1fr !important;
+  .print-area.sheet-ls-stacked {
+    width: 210mm !important;
+    height: 297mm !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
     align-items: stretch !important;
-    padding: 4mm 3mm !important;
-    gap: 1.2mm !important;
+    padding: 5mm 4mm 4mm !important;
+    gap: 2mm !important;
   }
 
   .no-print {
@@ -230,10 +258,13 @@
     vertical-align: middle !important;
   }
 
+  .chalan-card .chalan-fee-line-wrap {
+    min-height: 6.5mm !important;
+  }
+
   .chalan-card .chalan-fee-th-line,
   .chalan-card .chalan-fee-td-line {
-    min-height: 6.5mm !important;
-    line-height: 6.5mm !important;
+    line-height: 1.25 !important;
     padding: 1mm 2.2mm !important;
     font-size: 10px !important;
   }
@@ -243,7 +274,8 @@
     padding-top: 2mm !important;
   }
 
-  .sheet-landscape .layout-note {
+  .sheet-landscape .layout-note,
+  .sheet-ls-stacked .layout-note {
     grid-column: 1 / -1 !important;
     margin-top: 1mm !important;
     padding: 2mm 3mm !important;
@@ -302,50 +334,6 @@
 
   .sheet-landscape-compact .chalan-card footer {
     padding-top: 1.5mm !important;
-  }
-
-  .sheet-landscape-reference .chalan-card {
-    height: 100% !important;
-    padding: 1.4mm !important;
-  }
-
-  .sheet-landscape-reference .chalan-card img {
-    height: 8mm !important;
-    width: 8mm !important;
-  }
-
-  .sheet-landscape-reference .chalan-card header {
-    padding-bottom: 1mm !important;
-  }
-
-  .sheet-landscape-reference .chalan-card .mt-4 {
-    margin-top: 0.9mm !important;
-  }
-
-  .sheet-landscape-reference .chalan-card .mt-3 {
-    margin-top: 0.9mm !important;
-  }
-
-  .sheet-landscape-reference .chalan-card .mt-2 {
-    margin-top: 0.8mm !important;
-  }
-
-  .sheet-landscape-reference .chalan-card table.chalan-fee-table th,
-  .sheet-landscape-reference .chalan-card table.chalan-fee-table td {
-    padding: 0 !important;
-    vertical-align: middle !important;
-  }
-
-  .sheet-landscape-reference .chalan-card .chalan-fee-th-line,
-  .sheet-landscape-reference .chalan-card .chalan-fee-td-line {
-    min-height: 3.8mm !important;
-    line-height: 3.8mm !important;
-    padding: 0.5mm 1.1mm !important;
-    font-size: 7.2px !important;
-  }
-
-  .sheet-landscape-reference .chalan-card footer {
-    padding-top: 0.8mm !important;
   }
 
   .print-area > :not([hidden]) ~ :not([hidden]) {

@@ -3,6 +3,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 import ChalanCard from "../components/ChalanCard";
+import ChalanCardLandscape from "../components/ChalanCardLandscape";
 import Loader from "../components/Loader";
 import { institute } from "../data/institute";
 import { students } from "../data/students";
@@ -92,7 +93,8 @@ function Chalan() {
       });
 
       const imgData = canvas.toDataURL("image/png");
-      const orientation = "l";
+      /** Stacked landscape copies are portrait-shaped; 3-up portrait uses landscape page. */
+      const orientation = layoutMode === "landscape" ? "p" : "l";
       const pdf = new jsPDF({
         orientation,
         unit: "mm",
@@ -137,7 +139,7 @@ function Chalan() {
 
     const dynamicPrintStyle = document.createElement("style");
     dynamicPrintStyle.id = "dynamic-print-orientation";
-    const printOrientation = "landscape";
+    const printOrientation = layoutMode === "landscape" ? "portrait" : "landscape";
     dynamicPrintStyle.innerHTML = `@page { size: A4 ${printOrientation}; margin: 0; }`;
     document.head.appendChild(dynamicPrintStyle);
 
@@ -155,6 +157,7 @@ function Chalan() {
   const totalAmount = selectedStudent
     ? selectedStudent.feeDetails.reduce((sum, item) => sum + item.amount, 0)
     : 0;
+  const copyOrder = ["Bank Copy", "Accounts Copy", "Student Copy"];
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-6 md:py-8 space-y-6">
@@ -254,10 +257,10 @@ function Chalan() {
       {generatedChalan && (
         <div
           ref={printRef}
-          className={`print-area a4-sheet ${layoutMode === "portrait" ? "sheet-landscape" : "sheet-landscape-reference"} mx-auto bg-white rounded-lg shadow-sm border border-gray-300 p-4 md:p-5`}
+          className={`print-area a4-sheet ${layoutMode === "portrait" ? "sheet-landscape" : "sheet-ls-stacked"} mx-auto bg-white rounded-lg shadow-sm border border-gray-300 p-4 md:p-5`}
         >
           {layoutMode === "portrait" ? (
-            ["Bank Copy", "Student Copy", "Accounts Copy"].map((copyLabel) => (
+            copyOrder.map((copyLabel) => (
               <ChalanCard
                 key={copyLabel}
                 student={generatedChalan.student}
@@ -268,19 +271,18 @@ function Chalan() {
               />
             ))
           ) : (
-            ["Bank Copy", "Student Copy", "Accounts Copy"].map((copyLabel) => (
-              <ChalanCard
+            copyOrder.map((copyLabel) => (
+              <ChalanCardLandscape
                 key={copyLabel}
                 student={generatedChalan.student}
                 chalanId={generatedChalan.chalanId}
                 generatedAt={generatedChalan.generatedAt}
                 dueDate={generatedChalan.dueDate}
                 copyLabel={copyLabel}
-                compact
               />
             ))
           )}
-          {layoutMode === "portrait" && (
+          {(layoutMode === "portrait" || layoutMode === "landscape") && (
             <div className="layout-note flex flex-col items-center justify-center gap-1 border border-gray-300 rounded-md p-3 text-center text-sm text-gray-700 font-medium">
               <p>
                 Note: If you face difficulty while paying the fee, use this same
