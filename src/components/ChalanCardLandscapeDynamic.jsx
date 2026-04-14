@@ -20,15 +20,19 @@ function ChalanCardLandscapeDynamic({
   copyLabel,
   selectedFields = [],
   customFields = [],
+  exemptionsBreakdown = [],
+  totalFee,
+  baseFee,
 }) {
-  const totalAmount = student.feeDetails.reduce((sum, item) => sum + item.amount, 0);
+  const fallbackFee = student.feeDetails.reduce((sum, item) => sum + item.amount, 0);
+  const resolvedBaseFee = Number(baseFee) || Number(student.fee) || fallbackFee;
+  const finalTotal = typeof totalFee === "number" ? totalFee : resolvedBaseFee;
   const qrValue = JSON.stringify({
     chalanId,
     studentId: student.id,
     rollNumber: student.rollNumber,
-    totalAmount,
+    totalAmount: finalTotal,
   });
-
   return (
     <article className="chalan-card-landscape chalan-card-landscape-dynamic flex h-full flex-col rounded-md border border-gray-400 bg-white p-2.5">
       <header className="border-b border-gray-300 pb-2">
@@ -79,15 +83,34 @@ function ChalanCardLandscapeDynamic({
 
       <section className="mt-2 border border-gray-300 p-2 text-[8px] text-gray-800">
         <h3 className="mb-1 font-semibold">Fee Details</h3>
-        {student.feeDetails.map((item) => (
-          <div key={item.description} className="chalan-ls-dynamic-fee-row">
-            <span>{item.description}</span>
-            <span>{item.amount.toLocaleString()}</span>
+        <div className="chalan-ls-dynamic-fee-split">
+          <div className="chalan-ls-dynamic-fee-pane">
+            {student.feeDetails.map((item) => (
+              <div key={item.description} className="chalan-ls-dynamic-fee-row">
+                <span>{item.description}</span>
+                <span>{item.amount.toLocaleString()}</span>
+              </div>
+            ))}
           </div>
-        ))}
-        <div className="chalan-ls-dynamic-fee-row border-t border-gray-300 pt-1 font-semibold">
-          <span>Total</span>
-          <span>{totalAmount.toLocaleString()}</span>
+          <div className="chalan-ls-dynamic-fee-pane">
+            {exemptionsBreakdown.length > 0 ? (
+              exemptionsBreakdown.map((item) => (
+                <div key={item.key} className="chalan-ls-dynamic-fee-row text-emerald-700">
+                  <span>{item.label}</span>
+                  <span>-{Math.round(item.amount).toLocaleString()}</span>
+                </div>
+              ))
+            ) : (
+              <div className="chalan-ls-dynamic-fee-row text-gray-500">
+                <span>No exemptions applied</span>
+                <span>-</span>
+              </div>
+            )}
+            <div className="chalan-ls-dynamic-fee-row border-t border-gray-300 pt-1 font-semibold">
+              <span>Total</span>
+              <span>{Math.round(finalTotal).toLocaleString()}</span>
+            </div>
+          </div>
         </div>
       </section>
 

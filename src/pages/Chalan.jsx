@@ -17,6 +17,11 @@ const fieldOptions = [
   { key: "contact", label: "Contact" },
 ];
 const hiddenStudentKeys = new Set(["id", "rollNumber", "degree", "period", "feeDetails"]);
+const exemptionOptions = [
+  { key: "scholarship", label: "Scholarship" },
+  { key: "financialAid", label: "Financial Aid" },
+  { key: "feeWaiver", label: "Fee Waiver" },
+];
 
 function Chalan() {
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id ?? "");
@@ -25,6 +30,10 @@ function Chalan() {
   const [customFields, setCustomFields] = useState([]);
   const [customFieldLabel, setCustomFieldLabel] = useState("");
   const [customFieldValue, setCustomFieldValue] = useState("");
+  const [selectedExemptions, setSelectedExemptions] = useState([]);
+  const [customExemptions, setCustomExemptions] = useState([]);
+  const [customExemptionLabel, setCustomExemptionLabel] = useState("");
+  const [customExemptionAmount, setCustomExemptionAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingLabel, setProcessingLabel] = useState("Processing...");
   const [generatedChalan, setGeneratedChalan] = useState(null);
@@ -39,10 +48,34 @@ function Chalan() {
     const studentKeys = new Set(Object.keys(selectedStudent));
     return fieldOptions.filter(({ key }) => studentKeys.has(key) && !hiddenStudentKeys.has(key));
   }, [selectedStudent]);
+  const disabledExemptions = useMemo(() => {
+    if (!selectedStudent) return new Set();
+    const disabled = new Set();
+    if (!(Number(selectedStudent.scholarship) > 0)) disabled.add("scholarship");
+    if (!(Number(selectedStudent.financialAid) > 0)) disabled.add("financialAid");
+    return disabled;
+  }, [selectedStudent]);
 
   useEffect(() => {
     setSelectedFields((prev) => prev.filter((field) => availableFields.some((item) => item.key === field)));
   }, [availableFields]);
+
+  useEffect(() => {
+    if (!selectedStudent) {
+      setSelectedExemptions([]);
+      setCustomExemptions([]);
+      setCustomExemptionLabel("");
+      setCustomExemptionAmount("");
+      return;
+    }
+    const defaults = [];
+    if (Number(selectedStudent.scholarship) > 0) defaults.push("scholarship");
+    if (Number(selectedStudent.financialAid) > 0) defaults.push("financialAid");
+    setSelectedExemptions(defaults);
+    setCustomExemptions([]);
+    setCustomExemptionLabel("");
+    setCustomExemptionAmount("");
+  }, [selectedStudentId, selectedStudent]);
 
   const createChalanMeta = () => {
     const now = new Date();
@@ -85,6 +118,87 @@ function Chalan() {
 
   const handleRemoveCustomField = (indexToRemove) => {
     setCustomFields((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleExemptionToggle = (key) => {
+    setSelectedExemptions((prev) => {
+      const next = prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key];
+      if (key === "feeWaiver" && next.includes("feeWaiver")) {
+        setCustomExemptionLabel("Fee Waiver");
+      }
+      if (key === "feeWaiver" && !next.includes("feeWaiver") && customExemptionLabel === "Fee Waiver") {
+        setCustomExemptionLabel("");
+      }
+      return next;
+    });
+  };
+
+  const handleAddCustomExemption = () => {
+    const label = selectedExemptions.includes("feeWaiver") ? "Fee Waiver" : customExemptionLabel.trim();
+    const amount = Number(customExemptionAmount);
+    if (!label || !Number.isFinite(amount) || amount <= 0) {
+      toast.error("Please provide a valid exemption label and amount");
+      return;
+    }
+
+    setCustomExemptions((prev) => {
+      if (label === "Fee Waiver") {
+        const withoutWaiver = prev.filter((item) => item.label !== "Fee Waiver");
+        return [...withoutWaiver, { label, amount }];
+      }
+      return [...prev, { label, amount }];
+    });
+    if (!selectedExemptions.includes("feeWaiver")) setCustomExemptionLabel("");
+    setCustomExemptionAmount("");
+  };
+
+  const handleRemoveCustomExemption = (indexToRemove) => {
+    setCustomExemptions((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const calculateFeeAdjustments = (student) => {
+    if (!student) return { baseFee: 0, exemptionsBreakdown: [], totalFee: 0 };
+
+    const baseFee = Number(student.fee) || student.feeDetails.reduce((sum, item) => sum + item.amount, 0);
+    const breakdown = [];
+    let discount = 0;
+
+    if (selectedExemptions.includes("scholarship") && Number(student.scholarship) > 0) {
+      const amount = (Number(student.scholarship) / 100) * baseFee;
+      discount += amount;
+      breakdown.push({
+        key: "scholarship",
+        label: `Scholarship (${student.scholarship}%)`,
+        amount,
+      });
+    }
+
+    if (selectedExemptions.includes("financialAid") && Number(student.financialAid) > 0) {
+      const amount = (Number(student.financialAid) / 100) * baseFee;
+      discount += amount;
+      breakdown.push({
+        key: "financialAid",
+        label: `Financial Aid (${student.financialAid}%)`,
+        amount,
+      });
+    }
+
+    customExemptions.forEach((item, index) => {
+      if (!item?.label || !Number.isFinite(Number(item.amount)) || Number(item.amount) <= 0) return;
+      const amount = Number(item.amount);
+      discount += amount;
+      breakdown.push({
+        key: `customExemption-${index}`,
+        label: item.label,
+        amount,
+      });
+    });
+
+    return {
+      baseFee,
+      exemptionsBreakdown: breakdown,
+      totalFee: Math.max(baseFee - discount, 0),
+    };
   };
 
   const handleGenerateChalan = async () => {
@@ -200,9 +314,10 @@ function Chalan() {
     window.print();
   };
 
-  const totalAmount = selectedStudent
-    ? selectedStudent.feeDetails.reduce((sum, item) => sum + item.amount, 0)
-    : 0;
+  const feePreview = useMemo(
+    () => calculateFeeAdjustments(selectedStudent),
+    [selectedStudent, selectedExemptions, customExemptions],
+  );
   const copyOrder = ["Bank Copy", "Accounts Copy", "Student Copy"];
 
   return (
@@ -342,6 +457,67 @@ function Chalan() {
               </div>
             )}
           </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Exemptions Selection</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {exemptionOptions.map((item) => (
+                <label key={item.key} className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={selectedExemptions.includes(item.key)}
+                    disabled={disabledExemptions.has(item.key)}
+                    onChange={() => handleExemptionToggle(item.key)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  {item.label}
+                </label>
+              ))}
+            </div>
+            <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+              <input
+                type="text"
+                placeholder="Custom Exemption Name"
+                value={customExemptionLabel}
+                onChange={(event) => setCustomExemptionLabel(event.target.value)}
+                disabled={selectedExemptions.includes("feeWaiver")}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+              <input
+                type="number"
+                min="0"
+                placeholder="Amount"
+                value={customExemptionAmount}
+                onChange={(event) => setCustomExemptionAmount(event.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomExemption}
+                className="inline-flex items-center justify-center rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700"
+              >
+                + Add Exemption
+              </button>
+            </div>
+            {customExemptions.length > 0 && (
+              <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+                {customExemptions.map((item, index) => (
+                  <div key={`${item.label}-${index}`} className="flex items-center justify-between gap-2 py-1">
+                    <span>
+                      <strong>{item.label}:</strong> {Number(item.amount).toLocaleString()}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCustomExemption(index)}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {selectedStudent && (
@@ -357,7 +533,7 @@ function Chalan() {
             </p>
             <p>
               <span className="font-semibold">Estimated Total:</span>{" "}
-              PKR {totalAmount.toLocaleString()}
+              PKR {feePreview.totalFee.toLocaleString()}
             </p>
           </div>
         )}
@@ -371,31 +547,43 @@ function Chalan() {
           className={`print-area a4-sheet ${layoutMode === "portrait" ? "sheet-landscape" : "sheet-ls-stacked"} mx-auto bg-white rounded-lg shadow-sm border border-gray-300 p-4 md:p-5`}
         >
           {layoutMode === "portrait" ? (
-            copyOrder.map((copyLabel) => (
-              <ChalanCardDynamic
-                key={`dynamic-${copyLabel}`}
-                student={generatedChalan.student}
-                chalanId={generatedChalan.chalanId}
-                generatedAt={generatedChalan.generatedAt}
-                dueDate={generatedChalan.dueDate}
-                copyLabel={copyLabel}
-                selectedFields={selectedFields}
-                customFields={customFields}
-              />
-            ))
+            copyOrder.map((copyLabel) => {
+              const feeDetails = calculateFeeAdjustments(generatedChalan.student);
+              return (
+                <ChalanCardDynamic
+                  key={`dynamic-${copyLabel}`}
+                  student={generatedChalan.student}
+                  chalanId={generatedChalan.chalanId}
+                  generatedAt={generatedChalan.generatedAt}
+                  dueDate={generatedChalan.dueDate}
+                  copyLabel={copyLabel}
+                  selectedFields={selectedFields}
+                  customFields={customFields}
+                  exemptionsBreakdown={feeDetails.exemptionsBreakdown}
+                  totalFee={feeDetails.totalFee}
+                  baseFee={feeDetails.baseFee}
+                />
+              );
+            })
           ) : (
-            copyOrder.map((copyLabel) => (
-              <ChalanCardLandscapeDynamic
-                key={`dynamic-ls-${copyLabel}`}
-                student={generatedChalan.student}
-                chalanId={generatedChalan.chalanId}
-                generatedAt={generatedChalan.generatedAt}
-                dueDate={generatedChalan.dueDate}
-                copyLabel={copyLabel}
-                selectedFields={selectedFields}
-                customFields={customFields}
-              />
-            ))
+            copyOrder.map((copyLabel) => {
+              const feeDetails = calculateFeeAdjustments(generatedChalan.student);
+              return (
+                <ChalanCardLandscapeDynamic
+                  key={`dynamic-ls-${copyLabel}`}
+                  student={generatedChalan.student}
+                  chalanId={generatedChalan.chalanId}
+                  generatedAt={generatedChalan.generatedAt}
+                  dueDate={generatedChalan.dueDate}
+                  copyLabel={copyLabel}
+                  selectedFields={selectedFields}
+                  customFields={customFields}
+                  exemptionsBreakdown={feeDetails.exemptionsBreakdown}
+                  totalFee={feeDetails.totalFee}
+                  baseFee={feeDetails.baseFee}
+                />
+              );
+            })
           )}
           {(layoutMode === "portrait" || layoutMode === "landscape") && (
             <div className="layout-note flex flex-col items-center justify-center gap-1 border border-gray-300 rounded-md p-3 text-center text-sm text-gray-700 font-medium">

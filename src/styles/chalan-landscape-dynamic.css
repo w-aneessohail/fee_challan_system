@@ -49,6 +49,16 @@
   white-space: nowrap;
 }
 
+.chalan-ls-dynamic-fee-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.2rem 0.5rem;
+}
+
+.chalan-ls-dynamic-fee-pane {
+  min-width: 0;
+}
+
 @media print {
   .sheet-ls-stacked .chalan-card-landscape-dynamic {
     padding: 2mm !important;
@@ -63,6 +73,17 @@
   .sheet-ls-stacked .chalan-card-landscape-dynamic .chalan-ls-dynamic-fee-row {
     font-size: 7px !important;
     line-height: 1.2 !important;
+  }
+
+  .sheet-ls-stacked .chalan-card-landscape-dynamic .chalan-ls-dynamic-fee-split {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.3mm 1mm !important;
+  }
+
+  .sheet-ls-stacked .chalan-card-landscape-dynamic .chalan-ls-dynamic-fee-row {
+    font-size: 6.8px !important;
+    line-height: 1.15 !important;
+    padding: 0 !important;
   }
 
   .sheet-ls-stacked .chalan-card-landscape-dynamic .chalan-ls-dynamic-stripe {
