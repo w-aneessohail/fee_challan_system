@@ -1,16 +1,30 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
-import ChalanCard from "../components/ChalanCard";
-import ChalanCardLandscape from "../components/ChalanCardLandscape";
+import ChalanCardDynamic from "../components/ChalanCardDynamic";
+import ChalanCardLandscapeDynamic from "../components/ChalanCardLandscapeDynamic";
 import Loader from "../components/Loader";
 import { institute } from "../data/institute";
 import { students } from "../data/students";
 
+const fieldOptions = [
+  { key: "name", label: "Name" },
+  { key: "fatherName", label: "Father Name" },
+  { key: "semester", label: "Semester" },
+  { key: "department", label: "Department" },
+  { key: "cnic", label: "CNIC" },
+  { key: "contact", label: "Contact" },
+];
+const hiddenStudentKeys = new Set(["id", "rollNumber", "degree", "period", "feeDetails"]);
+
 function Chalan() {
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id ?? "");
   const [layoutMode, setLayoutMode] = useState("portrait");
+  const [selectedFields, setSelectedFields] = useState([]);
+  const [customFields, setCustomFields] = useState([]);
+  const [customFieldLabel, setCustomFieldLabel] = useState("");
+  const [customFieldValue, setCustomFieldValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingLabel, setProcessingLabel] = useState("Processing...");
   const [generatedChalan, setGeneratedChalan] = useState(null);
@@ -20,6 +34,15 @@ function Chalan() {
     () => students.find((student) => student.id === selectedStudentId) ?? null,
     [selectedStudentId],
   );
+  const availableFields = useMemo(() => {
+    if (!selectedStudent) return [];
+    const studentKeys = new Set(Object.keys(selectedStudent));
+    return fieldOptions.filter(({ key }) => studentKeys.has(key) && !hiddenStudentKeys.has(key));
+  }, [selectedStudent]);
+
+  useEffect(() => {
+    setSelectedFields((prev) => prev.filter((field) => availableFields.some((item) => item.key === field)));
+  }, [availableFields]);
 
   const createChalanMeta = () => {
     const now = new Date();
@@ -39,6 +62,29 @@ function Chalan() {
   const updateProcessingState = (active, label = "Processing...") => {
     setIsProcessing(active);
     setProcessingLabel(label);
+  };
+
+  const handleSelectedFieldToggle = (fieldKey) => {
+    setSelectedFields((prev) =>
+      prev.includes(fieldKey) ? prev.filter((key) => key !== fieldKey) : [...prev, fieldKey],
+    );
+  };
+
+  const handleAddCustomField = () => {
+    const label = customFieldLabel.trim();
+    const value = customFieldValue.trim();
+    if (!label || !value) {
+      toast.error("Please provide both custom field label and value");
+      return;
+    }
+
+    setCustomFields((prev) => [...prev, { label, value }]);
+    setCustomFieldLabel("");
+    setCustomFieldValue("");
+  };
+
+  const handleRemoveCustomField = (indexToRemove) => {
+    setCustomFields((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleGenerateChalan = async () => {
@@ -233,6 +279,71 @@ function Chalan() {
           </button>
         </div>
 
+        <div className="rounded-md border border-gray-200 bg-white p-4 space-y-3">
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Field Selection</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {availableFields.map((field) => (
+                <label key={field.key} className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={selectedFields.includes(field.key)}
+                    onChange={() => handleSelectedFieldToggle(field.key)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  {field.label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Custom Field Input</h3>
+            <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+              <input
+                type="text"
+                placeholder="Field Label"
+                value={customFieldLabel}
+                onChange={(event) => setCustomFieldLabel(event.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+              <input
+                type="text"
+                placeholder="Field Value"
+                value={customFieldValue}
+                onChange={(event) => setCustomFieldValue(event.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomField}
+                className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+              >
+                + Add Field
+              </button>
+            </div>
+
+            {customFields.length > 0 && (
+              <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+                {customFields.map((field, index) => (
+                  <div key={`${field.label}-${index}`} className="flex items-center justify-between gap-2 py-1">
+                    <span>
+                      <strong>{field.label}:</strong> {field.value}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCustomField(index)}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {selectedStudent && (
           <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
             <p>
@@ -261,24 +372,28 @@ function Chalan() {
         >
           {layoutMode === "portrait" ? (
             copyOrder.map((copyLabel) => (
-              <ChalanCard
-                key={copyLabel}
+              <ChalanCardDynamic
+                key={`dynamic-${copyLabel}`}
                 student={generatedChalan.student}
                 chalanId={generatedChalan.chalanId}
                 generatedAt={generatedChalan.generatedAt}
                 dueDate={generatedChalan.dueDate}
                 copyLabel={copyLabel}
+                selectedFields={selectedFields}
+                customFields={customFields}
               />
             ))
           ) : (
             copyOrder.map((copyLabel) => (
-              <ChalanCardLandscape
-                key={copyLabel}
+              <ChalanCardLandscapeDynamic
+                key={`dynamic-ls-${copyLabel}`}
                 student={generatedChalan.student}
                 chalanId={generatedChalan.chalanId}
                 generatedAt={generatedChalan.generatedAt}
                 dueDate={generatedChalan.dueDate}
                 copyLabel={copyLabel}
+                selectedFields={selectedFields}
+                customFields={customFields}
               />
             ))
           )}

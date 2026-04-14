@@ -1,0 +1,58 @@
+.chalan-card-dynamic {
+  box-sizing: border-box;
+}
+
+.chalan-card-dynamic p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.chalan-dynamic-stripe {
+  border-radius: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.chalan-dynamic-fields {
+  border-radius: 0.25rem;
+}
+
+.chalan-dynamic-field-row {
+  margin: 0;
+  padding: 0.1rem 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.chalan-dynamic-fee-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+  line-height: 1.3;
+}
+
+.chalan-dynamic-fee-row span:last-child {
+  white-space: nowrap;
+}
+
+@media print {
+  .sheet-landscape .chalan-card-dynamic {
+    padding: 2mm !important;
+  }
+
+  .sheet-landscape .chalan-card-dynamic .chalan-dynamic-stripe {
+    padding: 1.1mm 1.4mm !important;
+    font-size: 8px !important;
+  }
+
+  .sheet-landscape .chalan-card-dynamic .chalan-dynamic-field-row,
+  .sheet-landscape .chalan-card-dynamic .chalan-dynamic-fee-row {
+    font-size: 8.5px !important;
+  }
+}
