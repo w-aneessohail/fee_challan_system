@@ -1,0 +1,18 @@
+.a4-sheet.sheet-ls-stacked {
+  width: min(100%, 210mm);
+  min-height: 297mm;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.a4-sheet.sheet-landscape {
+  width: min(100%, 297mm);
+  min-height: 210mm;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: stretch;
+}

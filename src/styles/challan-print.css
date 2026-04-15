@@ -1,37 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* A4 shell for dynamic chalan cards — per-card styles in chalan-dynamic.css / chalan-landscape-dynamic.css */
-.a4-sheet.sheet-ls-stacked {
-  width: min(100%, 210mm);
-  min-height: 297mm;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  align-items: stretch;
-}
-
-.a4-sheet.sheet-landscape {
-  width: min(100%, 297mm);
-  min-height: 210mm;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  align-items: stretch;
-}
-
-.sheet-landscape .layout-note,
-.sheet-ls-stacked .layout-note {
-  grid-column: 1 / -1;
-}
-
-.sheet-landscape .chalan-card,
-.sheet-landscape .chalan-card-landscape {
-  height: auto;
-}
-
 @media print {
   @page {
     size: A4 portrait;

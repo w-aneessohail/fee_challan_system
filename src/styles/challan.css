@@ -1,0 +1,13 @@
+.sheet-landscape .layout-note,
+.sheet-ls-stacked .layout-note {
+  grid-column: 1 / -1;
+}
+
+.sheet-landscape .chalan-card,
+.sheet-landscape .chalan-card-landscape {
+  height: auto;
+}
+
+.a4-sheet {
+  box-sizing: border-box;
+}

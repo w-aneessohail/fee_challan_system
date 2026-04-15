@@ -14,9 +14,7 @@ const fieldLabels = {
 
 function ChalanCardLandscapeDynamic({
   student,
-  chalanId,
-  generatedAt,
-  dueDate,
+  challanMeta,
   copyLabel,
   selectedFields = [],
   customFields = [],
@@ -28,7 +26,7 @@ function ChalanCardLandscapeDynamic({
   const resolvedBaseFee = Number(baseFee) || Number(student.fee) || fallbackFee;
   const finalTotal = typeof totalFee === "number" ? totalFee : resolvedBaseFee;
   const qrValue = JSON.stringify({
-    chalanId,
+    chalanId: challanMeta?.chalanId,
     studentId: student.id,
     rollNumber: student.rollNumber,
     totalAmount: finalTotal,
@@ -49,9 +47,9 @@ function ChalanCardLandscapeDynamic({
             </div>
           </div>
           <div className="text-right text-[8px] text-gray-700">
-            <p>Chalan ID: {chalanId}</p>
-            <p>Date: {generatedAt}</p>
-            <p>Due: {dueDate}</p>
+            <p>Chalan ID: {challanMeta?.chalanId}</p>
+            <p>Date: {challanMeta?.generatedAt}</p>
+            <p>Due: {challanMeta?.dueDate}</p>
           </div>
         </div>
         <div className="chalan-ls-dynamic-stripe mt-2 bg-black text-white">{institute.bankDisplayName}</div>
