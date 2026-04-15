@@ -57,7 +57,7 @@ function Chalan() {
   }, [selectedStudent]);
 
   useEffect(() => {
-    setSelectedFields((prev) => prev.filter((field) => availableFields.some((item) => item.key === field)));
+    setSelectedFields(availableFields.map((item) => item.key));
   }, [availableFields]);
 
   useEffect(() => {
