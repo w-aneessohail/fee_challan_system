@@ -47,7 +47,7 @@ function ChalanCardDynamic({
             <p>Due Date: {challanMeta?.dueDate}</p>
           </div>
         </div>
-        <div className="chalan-dynamic-stripe mt-2 bg-black text-white">{institute.bankDisplayName}</div>
+        <div className="chalan-dynamic-stripe mt-2">{institute.bankDisplayName}</div>
       </header>
 
       <section className="mt-3 text-[10px] text-gray-800">
@@ -86,13 +86,14 @@ function ChalanCardDynamic({
             <span>-{Math.round(item.amount).toLocaleString()}</span>
           </div>
         ))}
-        <div className="chalan-dynamic-fee-row border-t border-gray-300 pt-1 font-semibold">
+        <div className="chalan-dynamic-fee-separator" aria-hidden="true" />
+        <div className="chalan-dynamic-fee-row pt-0.5 font-semibold">
           <span>Total</span>
           <span>{Math.round(finalTotal).toLocaleString()}</span>
         </div>
       </section>
 
-      <div className="chalan-dynamic-stripe mt-2 bg-black text-white">{copyLabel}</div>
+      <div className="chalan-dynamic-stripe mt-2">{copyLabel}</div>
 
       <footer className="mt-auto pt-2">
         <div className="flex items-end justify-between gap-2">

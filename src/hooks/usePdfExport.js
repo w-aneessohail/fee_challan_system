@@ -25,6 +25,7 @@ export const usePdfExport = ({
       }
       window.scrollTo(0, 0);
 
+      // Rasterizes *screen* styles (not @media print). Layout must be html2canvas-friendly (see chalan-*-dynamic.css).
       const canvas = await html2canvas(printRef.current, {
         scale: 3,
         useCORS: true,
@@ -32,6 +33,7 @@ export const usePdfExport = ({
         backgroundColor: "#ffffff",
         scrollX: 0,
         scrollY: 0,
+        foreignObjectRendering: false,
       });
 
       const imgData = canvas.toDataURL("image/png");

@@ -22,6 +22,16 @@ function Chalan() {
     layoutMode: challan.layoutMode,
   });
   const copyOrder = ["Bank Copy", "Accounts Copy", "Student Copy"];
+  const handleCustomFieldEnter = (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    challan.handleAddCustomField();
+  };
+  const handleCustomExemptionEnter = (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    challan.handleAddCustomExemption();
+  };
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-6 md:py-8 space-y-6">
@@ -120,6 +130,7 @@ function Chalan() {
                 placeholder="Field Label"
                 value={challan.customFieldLabel}
                 onChange={(event) => challan.setCustomFieldLabel(event.target.value)}
+                onKeyDown={handleCustomFieldEnter}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
               <input
@@ -127,6 +138,7 @@ function Chalan() {
                 placeholder="Field Value"
                 value={challan.customFieldValue}
                 onChange={(event) => challan.setCustomFieldValue(event.target.value)}
+                onKeyDown={handleCustomFieldEnter}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
               <button
@@ -181,6 +193,7 @@ function Chalan() {
                 value={challan.customExemptionLabel}
                 onChange={(event) => challan.setCustomExemptionLabel(event.target.value)}
                 disabled={challan.selectedExemptions.includes("feeWaiver")}
+                onKeyDown={handleCustomExemptionEnter}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
               <input
@@ -189,6 +202,7 @@ function Chalan() {
                 placeholder="Amount"
                 value={challan.customExemptionAmount}
                 onChange={(event) => challan.setCustomExemptionAmount(event.target.value)}
+                onKeyDown={handleCustomExemptionEnter}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
               <button

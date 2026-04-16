@@ -8,8 +8,14 @@
 }
 
 .chalan-ls-dynamic-stripe {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 1.45rem;
   border-radius: 0.25rem;
-  padding: 0.3rem 0.45rem;
+  padding: 0 0.45rem;
   text-align: center;
   font-size: 8px;
   font-weight: 700;
@@ -47,6 +53,15 @@
 
 .chalan-ls-dynamic-fee-row span:last-child {
   white-space: nowrap;
+}
+
+.chalan-ls-dynamic-fee-separator {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: 0.3rem 0 0.15rem;
+  border: 0;
+  border-top: 1px solid #d1d5db;
 }
 
 .chalan-ls-dynamic-fee-split {
@@ -87,7 +102,11 @@
   }
 
   .sheet-ls-stacked .chalan-card-landscape-dynamic .chalan-ls-dynamic-stripe {
-    padding: 0.8mm 1.1mm !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 5mm !important;
+    padding: 0 1.1mm !important;
     font-size: 7px !important;
   }
 }

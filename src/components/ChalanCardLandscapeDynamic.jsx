@@ -52,7 +52,7 @@ function ChalanCardLandscapeDynamic({
             <p>Due: {challanMeta?.dueDate}</p>
           </div>
         </div>
-        <div className="chalan-ls-dynamic-stripe mt-2 bg-black text-white">{institute.bankDisplayName}</div>
+        <div className="chalan-ls-dynamic-stripe mt-2">{institute.bankDisplayName}</div>
       </header>
 
       <section className="mt-2 text-[8px] text-gray-800">
@@ -104,7 +104,8 @@ function ChalanCardLandscapeDynamic({
                 <span>-</span>
               </div>
             )}
-            <div className="chalan-ls-dynamic-fee-row border-t border-gray-300 pt-1 font-semibold">
+            <div className="chalan-ls-dynamic-fee-separator" aria-hidden="true" />
+            <div className="chalan-ls-dynamic-fee-row pt-0.5 font-semibold">
               <span>Total</span>
               <span>{Math.round(finalTotal).toLocaleString()}</span>
             </div>
@@ -112,7 +113,7 @@ function ChalanCardLandscapeDynamic({
         </div>
       </section>
 
-      <div className="chalan-ls-dynamic-stripe mt-2 bg-black text-white">{copyLabel}</div>
+      <div className="chalan-ls-dynamic-stripe mt-2 ">{copyLabel}</div>
 
       <footer className="mt-auto pt-2">
         <div className="flex items-end justify-between gap-2">

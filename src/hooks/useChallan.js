@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { students } from "../data/students";
+import { exemptionOptions } from "../constants/challan";
 import {
-  exemptionOptions,
   getAvailableFields,
   getDefaultExemptions,
   getDisabledExemptions,
   getFeePreview,
-} from "../services/challanService";
+} from "../utils/challan/challanFieldHelpers";
 import { createChallanMeta } from "../utils/challan/challanMeta";
 
 export const useChallan = () => {

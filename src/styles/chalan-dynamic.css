@@ -7,13 +7,20 @@
   line-height: 1.35;
 }
 
+/* Flex + explicit min-height: html2canvas aligns text more reliably than padding-only line boxes */
 .chalan-dynamic-stripe {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 1.75rem;
   border-radius: 0.25rem;
-  padding: 0.4rem 0.5rem;
+  padding: 0 0.5rem;
   text-align: center;
   font-size: 10px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .chalan-dynamic-fields {
@@ -41,13 +48,27 @@
   white-space: nowrap;
 }
 
+/* Separate hr from Total row: border-t on the row often mis-draws in html2canvas (line through previous text) */
+.chalan-dynamic-fee-separator {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: 0.4rem 0 0.2rem;
+  border: 0;
+  border-top: 1px solid #d1d5db;
+}
+
 @media print {
   .sheet-landscape .chalan-card-dynamic {
     padding: 2mm !important;
   }
 
   .sheet-landscape .chalan-card-dynamic .chalan-dynamic-stripe {
-    padding: 1.1mm 1.4mm !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 6mm !important;
+    padding: 0 1.4mm !important;
     font-size: 8px !important;
   }
 
