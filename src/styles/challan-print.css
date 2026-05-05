@@ -44,11 +44,82 @@
   .print-area.sheet-ls-stacked {
     width: 210mm !important;
     height: 297mm !important;
+    min-height: 297mm !important;
     grid-template-columns: 1fr !important;
-    grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-rows: repeat(3, auto) auto !important;
     align-items: stretch !important;
-    padding: 5mm 4mm 4mm !important;
-    gap: 2mm !important;
+    /* Consume leftover A4 height between slips + note instead of blank at bottom */
+    align-content: space-between !important;
+    padding: 4mm 3.5mm 4.5mm !important;
+    gap: 1.25mm !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Stacked landscape: grow with content; no clipping on fee pane */
+  .sheet-ls-stacked > .chalan-card-landscape {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  /*
+   * Screen uses footer flex-1 + mt-auto to pin codes to bottom; in print that adds a tall
+   * empty flex stripe above the QR row and wastes vertical space → page 3. Remove for stacked.
+   */
+  .sheet-ls-stacked > .chalan-card-landscape.chalan-card-landscape-dynamic > footer {
+    flex: none !important;
+    flex-grow: 0 !important;
+    margin-top: 1.15mm !important;
+    padding-top: 1mm !important;
+    padding-bottom: 0.25mm !important;
+    min-height: 0 !important;
+  }
+
+  .sheet-ls-stacked > .chalan-card-landscape.chalan-card-landscape-dynamic > footer .chalan-ls-footer-band {
+    padding-top: 0 !important;
+  }
+
+  .sheet-ls-stacked > .chalan-card-landscape footer .chalan-ls-footer-band {
+    margin-top: 0 !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-rows: auto !important;
+    align-items: end !important;
+    align-content: end !important;
+    gap: 1mm 1.65mm !important;
+    flex-shrink: 0 !important;
+    padding-bottom: 0.75mm !important;
+  }
+
+  /* Fee Details: intrinsic height — do not shrink/clip inside equal-height grid slices */
+  .sheet-ls-stacked > .chalan-card-landscape > section + section {
+    flex: 0 1 auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  .sheet-ls-stacked > .chalan-card-landscape footer canvas {
+    max-height: 52px !important;
+    width: auto !important;
+  }
+
+  .sheet-ls-stacked > .chalan-card-landscape footer .chalan-ls-barcode-slot {
+    display: block !important;
+    overflow: hidden !important;
+    line-height: 0 !important;
+    max-height: 54px !important;
+  }
+
+  .sheet-ls-stacked > .chalan-card-landscape footer .chalan-ls-barcode-slot a {
+    display: block !important;
+    line-height: 0 !important;
+  }
+
+  .sheet-ls-stacked > .chalan-card-landscape footer .chalan-ls-barcode-slot svg {
+    display: block !important;
+    max-height: 54px !important;
+    width: auto !important;
+    vertical-align: top !important;
   }
 
   .no-print {
@@ -83,15 +154,25 @@
   .sheet-landscape .layout-note,
   .sheet-ls-stacked .layout-note {
     grid-column: 1 / -1 !important;
-    margin-top: 1mm !important;
-    padding: 2mm 3mm !important;
-    font-size: 10px !important;
     line-height: 1.25 !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
+  }
+
+  .sheet-landscape .layout-note {
+    margin-top: 1mm !important;
+    padding: 2mm 3mm !important;
+    font-size: 10px !important;
+  }
+
+  .sheet-ls-stacked .layout-note {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 2mm 2.75mm !important;
+    font-size: 9px !important;
   }
 
   .sheet-landscape .chalan-card,

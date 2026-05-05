@@ -23,5 +23,9 @@ export const getDefaultExemptions = (student) => {
   return defaults;
 };
 
-export const getFeePreview = ({ student, selectedExemptions, customExemptions }) =>
-  calculateFeeAdjustments({ student, selectedExemptions, customExemptions });
+export const getFeePreview = ({
+  student,
+  selectedExemptions,
+  customExemptions,
+  additionalFees = [],
+}) => calculateFeeAdjustments({ student, selectedExemptions, customExemptions, additionalFees });

@@ -1,13 +1,13 @@
 export const fieldOptions = [
   { key: "name", label: "Name" },
   { key: "fatherName", label: "Father Name" },
-  { key: "semester", label: "Semester" },
+  { key: "period", label: "Period" },
   { key: "department", label: "Department" },
   { key: "cnic", label: "CNIC" },
   { key: "contact", label: "Contact" },
 ];
 
-export const hiddenStudentKeys = new Set(["id", "rollNumber", "degree", "period", "feeDetails"]);
+export const hiddenStudentKeys = new Set(["id", "rollNumber", "degree", "feeDetails"]);
 
 export const exemptionOptions = [
   { key: "scholarship", label: "Scholarship" },
