@@ -3,12 +3,37 @@ import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
 import { getGeneratedChallan } from "../utils/challan/challanRegistry";
 
-const BANK_OPTIONS = [
+const BANK_OPTIONS =[
   { value: "", label: "Select bank..." },
-  { value: "alfalah", label: "Bank Alfalah" },
-  { value: "hbl", label: "HBL" },
+
+  // Major Commercial Banks
+  { value: "hbl", label: "HBL (Habib Bank Limited)" },
+  { value: "ubl", label: "UBL (United Bank Limited)" },
+  { value: "mcb", label: "MCB Bank Limited" },
+  { value: "abl", label: "Allied Bank Limited" },
+  { value: "nbp", label: "National Bank of Pakistan" },
+  { value: "bank_alfalah", label: "Bank Alfalah" },
+  { value: "faysal", label: "Faysal Bank" },
+  { value: "bank_al_habib", label: "Bank Al Habib" },
+  { value: "askari", label: "Askari Bank" },
+  { value: "silk", label: "Silk Bank" },
+  { value: "soneri", label: "Soneri Bank" },
+  { value: "summit", label: "Summit Bank" },
+
+  // Islamic Banks
   { value: "meezan", label: "Meezan Bank" },
-  { value: "cash", label: "Cash" },
+  { value: "bank_islami", label: "Bank Islami" },
+  { value: "albaraka", label: "Al Baraka Bank" },
+
+  // Digital / Microfinance
+  { value: "easypaisa", label: "Easypaisa" },
+  { value: "jazzcash", label: "JazzCash" },
+  { value: "nayapay", label: "NayaPay" },
+  { value: "sadapay", label: "SadaPay" },
+  { value: "upaisa", label: "UPaisa" },
+
+  // Cash
+  { value: "cash", label: "Cash" }
 ];
 
 function VerifyChallan() {
@@ -16,15 +41,26 @@ function VerifyChallan() {
   const record = useMemo(() => getGeneratedChallan(chalanId), [chalanId]);
   const [bank, setBank] = useState("");
   const [status, setStatus] = useState("Unpaid");
+  const [paymentDate, setPaymentDate] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
 
   const handleSubmit = (event) => {
     event.preventDefault();
+  
     if (!bank) {
       toast.error("Please select a bank");
       return;
     }
+  
+    if (!paymentDate) {
+      toast.error("Please select a payment date");
+      return;
+    }
+  
     setStatus("Paid");
-    toast.success("Marked as paid (local only)");
+  
+    toast.success(`Paid via ${bank} on ${paymentDate}`);
   };
 
   if (!chalanId) {
@@ -106,6 +142,18 @@ function VerifyChallan() {
                 </option>
               ))}
             </select>
+          </label>
+          <label className="block">
+           <span className="block text-sm font-medium text-gray-700 mb-1">
+             Payment date
+           </span>
+           <input
+             type="date"
+             value={paymentDate}
+             max={new Date().toISOString().split("T")[0]} // no future dates
+             onChange={(e) => setPaymentDate(e.target.value)}
+             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+           />
           </label>
           <button
             type="submit"
